@@ -49,4 +49,12 @@ class Doctor extends Model
 
         return 'DOC-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Appointments
+     */
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class)->orderBy('appointment_date')->orderBy('appointment_time');
+    }
 }

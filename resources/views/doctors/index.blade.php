@@ -1,20 +1,15 @@
 @extends('layouts.app')
 
 @section('title', 'Doctors - Skin Care Clinic')
+@section('page_title', 'Doctors')
+@section('page_subtitle', $doctors->total() . ' doctor(s) registered')
 
 @section('content')
 
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
     <div>
-        <a href="{{ url('/') }}"
-            class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-rose-600 transition mb-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-            </svg>
-            Back to Dashboard
-        </a>
-        <h1 class="text-2xl font-bold text-gray-800">Doctors</h1>
-        <p class="text-gray-500 text-sm mt-1">{{ $doctors->total() }} doctor(s) registered</p>
+        <h1 class="text-xl font-bold text-gray-800">Doctors</h1>
+        <p class="text-gray-400 text-sm mt-0.5">{{ $doctors->total() }} doctor(s) registered</p>
     </div>
     @if(auth()->user()->hasRole(['admin']))
     <a href="{{ route('doctors.create') }}"

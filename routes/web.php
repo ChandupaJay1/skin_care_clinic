@@ -7,6 +7,9 @@ use App\Http\Controllers\TreatmentController;
 use App\Http\Controllers\PatientTreatmentPhotoController;
 use App\Http\Controllers\DoctorController;
 
+use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\InvoiceController;
+
 // ── Auth ──────────────────────────────────────────────────────────────────────
 Route::get('/login',  [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
@@ -17,6 +20,50 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboard
     Route::get('/', fn() => view('welcome'))->name('dashboard');
+
+    // ── Invoices ──────────────────────────────────────────────────────────────
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/',                        [InvoiceController::class, 'index'])->name('index');
+        Route::get('/patient-appointments',    [InvoiceController::class, 'patientAppointments'])->name('patient-appointments');
+
+        Route::middleware('role:admin,receptionist')->group(function () {
+            Route::get('/create', [InvoiceController::class, 'create'])->name('create');
+            Route::post('/',      [InvoiceController::class, 'store'])->name('store');
+        });
+
+        Route::get('/{invoice}',       [InvoiceController::class, 'show'])->name('show');
+        Route::get('/{invoice}/print', [InvoiceController::class, 'print'])->name('print');
+
+        Route::middleware('role:admin')->group(function () {
+            Route::delete('/{invoice}', [InvoiceController::class, 'destroy'])->name('destroy');
+        });
+    });
+
+    // ── Appointments ──────────────────────────────────────────────────────────
+    Route::prefix('appointments')->name('appointments.')->group(function () {
+
+        // Static routes FIRST
+        Route::get('/',        [AppointmentController::class, 'index'])->name('index');
+        Route::get('/history', [AppointmentController::class, 'history'])->name('history');
+
+        Route::middleware('role:admin,receptionist')->group(function () {
+            Route::get('/create', [AppointmentController::class, 'create'])->name('create');
+            Route::post('/',      [AppointmentController::class, 'store'])->name('store');
+        });
+
+        // JSON endpoint — booked slots for a doctor/date
+        Route::get('/booked-slots', [AppointmentController::class, 'bookedSlots'])->name('booked-slots');
+
+        // Wildcard routes AFTER
+        Route::get('/{appointment}',        [AppointmentController::class, 'show'])->name('show');
+        Route::get('/{appointment}/receipt',[AppointmentController::class, 'receipt'])->name('receipt');
+
+        Route::middleware('role:admin,receptionist')->group(function () {
+            Route::get('/{appointment}/edit',    [AppointmentController::class, 'edit'])->name('edit');
+            Route::put('/{appointment}',         [AppointmentController::class, 'update'])->name('update');
+            Route::patch('/{appointment}/status',[AppointmentController::class, 'updateStatus'])->name('status');
+        });
+    });
 
     // ── Patients ──────────────────────────────────────────────────────────────
     Route::prefix('patients')->name('patients.')->group(function () {

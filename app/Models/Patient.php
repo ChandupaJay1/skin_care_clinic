@@ -43,6 +43,14 @@ class Patient extends Model
     }
 
     /**
+     * Appointments
+     */
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class)->orderBy('appointment_date')->orderBy('appointment_time');
+    }
+
+    /**
      * Get patient's age
      */
     public function getAgeAttribute(): int

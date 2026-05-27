@@ -232,6 +232,177 @@
             &nbsp;·&nbsp; Last updated {{ $patient->updated_at->diffForHumans() }}
         </div>
 
+        {{-- ═══ Treatment History ═══════════════════════════════════════════ --}}
+        @php
+            $appointmentHistory = $patient->appointments()
+                ->with(['doctor', 'treatment'])
+                ->orderBy('appointment_date', 'desc')
+                ->orderBy('appointment_time', 'desc')
+                ->get();
+
+            $historyByTreatment = $appointmentHistory->groupBy(fn($a) =>
+                $a->treatment ? $a->treatment->name : 'General Consultation'
+            );
+
+            $statusColors = [
+                'scheduled' => 'bg-blue-100 text-blue-700',
+                'completed' => 'bg-green-100 text-green-700',
+                'cancelled' => 'bg-red-100 text-red-700',
+                'no_show'   => 'bg-yellow-100 text-yellow-700',
+            ];
+        @endphp
+
+        <div class="bg-white rounded-xl shadow-sm border border-rose-100 overflow-hidden">
+            <div class="bg-rose-50 px-6 py-4 border-b border-rose-100 flex items-center justify-between">
+                <h3 class="font-semibold text-rose-700 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Treatment History
+                </h3>
+                <span class="text-xs bg-rose-100 text-rose-600 font-medium px-2.5 py-1 rounded-full">
+                    {{ $appointmentHistory->count() }} appointment{{ $appointmentHistory->count() != 1 ? 's' : '' }}
+                </span>
+            </div>
+
+            <div class="p-6">
+                @if($appointmentHistory->isEmpty())
+                    <div class="text-center py-10">
+                        <div class="w-14 h-14 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-7 h-7 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                        </div>
+                        <p class="text-gray-500 text-sm font-medium mb-1">No appointments yet</p>
+                        <p class="text-gray-400 text-xs mb-4">This patient has no appointment history.</p>
+                        @if(auth()->user()->hasRole(['admin','receptionist']))
+                        <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}"
+                            class="inline-flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Book Appointment
+                        </a>
+                        @endif
+                    </div>
+                @else
+                    {{-- Summary stats --}}
+                    <div class="grid grid-cols-4 gap-3 mb-6">
+                        @foreach([
+                            ['label'=>'Total',     'val'=>$appointmentHistory->count(),                              'color'=>'text-gray-700',  'bg'=>'bg-gray-50'],
+                            ['label'=>'Completed', 'val'=>$appointmentHistory->where('status','completed')->count(), 'color'=>'text-green-600', 'bg'=>'bg-green-50'],
+                            ['label'=>'Scheduled', 'val'=>$appointmentHistory->where('status','scheduled')->count(), 'color'=>'text-blue-600',  'bg'=>'bg-blue-50'],
+                            ['label'=>'Cancelled', 'val'=>$appointmentHistory->where('status','cancelled')->count(), 'color'=>'text-red-500',   'bg'=>'bg-red-50'],
+                        ] as $s)
+                        <div class="{{ $s['bg'] }} rounded-xl p-3 text-center">
+                            <p class="text-xl font-bold {{ $s['color'] }}">{{ $s['val'] }}</p>
+                            <p class="text-xs text-gray-400 mt-0.5">{{ $s['label'] }}</p>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    {{-- Grouped by treatment --}}
+                    <div class="space-y-6">
+                        @foreach($historyByTreatment as $treatmentName => $appts)
+                        <div>
+                            {{-- Treatment group header --}}
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-2.5 h-2.5 rounded-full bg-rose-400 flex-shrink-0"></div>
+                                <h4 class="text-sm font-semibold text-gray-700">{{ $treatmentName }}</h4>
+                                <span class="text-xs text-gray-400 font-normal">
+                                    {{ $appts->count() }} session{{ $appts->count() != 1 ? 's' : '' }}
+                                </span>
+                                @if($appts->where('status','completed')->count() > 0)
+                                <span class="ml-auto text-xs bg-green-50 text-green-600 font-medium px-2 py-0.5 rounded-full">
+                                    {{ $appts->where('status','completed')->count() }} completed
+                                </span>
+                                @endif
+                            </div>
+
+                            {{-- Appointment rows --}}
+                            <div class="border border-gray-100 rounded-xl overflow-hidden divide-y divide-gray-50">
+                                @foreach($appts as $appt)
+                                <div class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/60 transition">
+
+                                    {{-- Date block --}}
+                                    <div class="flex-shrink-0 w-12 text-center">
+                                        <p class="text-xs font-bold text-gray-700 leading-tight">
+                                            {{ $appt->appointment_date->format('d') }}
+                                        </p>
+                                        <p class="text-xs text-gray-400 leading-tight">
+                                            {{ $appt->appointment_date->format('M Y') }}
+                                        </p>
+                                    </div>
+
+                                    {{-- Vertical divider --}}
+                                    <div class="w-px h-8 bg-gray-100 flex-shrink-0"></div>
+
+                                    {{-- Info --}}
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <p class="text-sm font-medium text-gray-800">
+                                                {{ $appt->formatted_time }}
+                                            </p>
+                                            <span class="text-gray-300">·</span>
+                                            <p class="text-xs text-gray-500 truncate">
+                                                Dr. {{ $appt->doctor->full_name }}
+                                            </p>
+                                        </div>
+                                        <p class="text-xs text-gray-400 mt-0.5 font-mono">
+                                            #{{ $appt->booking_number }}
+                                            <span class="text-gray-300 mx-1">·</span>
+                                            {{ $appt->appointment_date->format('l') }}
+                                        </p>
+                                    </div>
+
+                                    {{-- Status badge --}}
+                                    <span class="text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0 {{ $statusColors[$appt->status] ?? 'bg-gray-100 text-gray-600' }}">
+                                        {{ $appt->status_label }}
+                                    </span>
+
+                                    {{-- Actions --}}
+                                    <div class="flex items-center gap-1 flex-shrink-0">
+                                        <a href="{{ route('appointments.show', $appt) }}"
+                                            class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition"
+                                            title="View appointment">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                        </a>
+                                        <a href="{{ route('appointments.receipt', $appt) }}" target="_blank"
+                                            class="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition"
+                                            title="Print receipt">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    {{-- Book new appointment CTA --}}
+                    @if(auth()->user()->hasRole(['admin','receptionist']))
+                    <div class="mt-5 pt-5 border-t border-gray-100">
+                        <a href="{{ route('appointments.create', ['patient_id' => $patient->id]) }}"
+                            class="inline-flex items-center gap-2 text-sm text-rose-500 hover:text-rose-600 font-medium transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Book New Appointment
+                        </a>
+                    </div>
+                    @endif
+                @endif
+            </div>
+        </div>
+
         {{-- Treatment Progress Photos --}}
         <div class="bg-white rounded-xl shadow-sm border border-rose-100 overflow-hidden">
             <div class="bg-rose-50 px-6 py-4 border-b border-rose-100 flex items-center justify-between">
