@@ -109,7 +109,13 @@ class PatientController extends Controller
      */
     public function show(Patient $patient)
     {
-        return view('patients.show', compact('patient'));
+        $photosByTreatment = $patient->treatmentPhotos()
+            ->with('treatment')
+            ->orderBy('taken_on')
+            ->get()
+            ->groupBy('treatment_id');
+
+        return view('patients.show', compact('patient', 'photosByTreatment'));
     }
 
     /**

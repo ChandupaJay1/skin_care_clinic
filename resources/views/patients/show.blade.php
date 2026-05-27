@@ -5,6 +5,13 @@
 @section('content')
 
 <div class="mb-6">
+    <a href="{{ route('patients.index') }}"
+        class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-rose-600 transition mb-3">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to Patients
+    </a>
     <nav class="text-sm text-gray-500 mb-2">
         <a href="{{ route('patients.index') }}" class="hover:text-rose-600">Patients</a>
         <span class="mx-2">/</span>
@@ -223,6 +230,105 @@
             </svg>
             Registered on {{ $patient->created_at->format('d M Y, h:i A') }}
             &nbsp;·&nbsp; Last updated {{ $patient->updated_at->diffForHumans() }}
+        </div>
+
+        {{-- Treatment Progress Photos --}}
+        <div class="bg-white rounded-xl shadow-sm border border-rose-100 overflow-hidden">
+            <div class="bg-rose-50 px-6 py-4 border-b border-rose-100 flex items-center justify-between">
+                <h3 class="font-semibold text-rose-700 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Treatment Progress Photos
+                </h3>
+                <div class="flex items-center gap-2">
+                    @if($photosByTreatment->isNotEmpty())
+                    <a href="{{ route('patients.treatment-photos.compare', $patient) }}"
+                        class="inline-flex items-center gap-1.5 bg-purple-500 hover:bg-purple-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/>
+                        </svg>
+                        Compare Photos
+                    </a>
+                    @endif
+                    <a href="{{ route('patients.treatment-photos.create', $patient) }}"
+                        class="inline-flex items-center gap-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Add Photo
+                    </a>
+                </div>
+            </div>
+
+            <div class="p-6">
+                @if($photosByTreatment->isEmpty())
+                    <div class="text-center py-10">
+                        <div class="w-14 h-14 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-7 h-7 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <p class="text-gray-500 text-sm font-medium mb-1">No treatment photos yet</p>
+                        <p class="text-gray-400 text-xs mb-4">Add photos to track skin treatment progress over time.</p>
+                        <a href="{{ route('patients.treatment-photos.create', $patient) }}"
+                            class="inline-flex items-center gap-2 bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Add First Photo
+                        </a>
+                    </div>
+                @else
+                    <div class="space-y-8">
+                        @foreach($photosByTreatment as $treatmentId => $photos)
+                        @php $treatment = $photos->first()->treatment; @endphp
+                        <div>
+                            {{-- Treatment label --}}
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-2 h-2 rounded-full bg-rose-400"></div>
+                                <h4 class="text-sm font-semibold text-gray-700">{{ $treatment->name }}</h4>
+                                <span class="text-xs text-gray-400">({{ $photos->count() }} photo{{ $photos->count() > 1 ? 's' : '' }})</span>
+                            </div>
+
+                            {{-- Photo grid --}}
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                @foreach($photos as $photo)
+                                <div class="group relative bg-gray-50 rounded-xl overflow-hidden border border-gray-100 hover:border-rose-200 transition">
+                                    <a href="{{ Storage::url($photo->photo_path) }}" target="_blank">
+                                        <img src="{{ Storage::url($photo->photo_path) }}"
+                                            class="w-full aspect-square object-cover"
+                                            alt="Treatment photo {{ $photo->taken_on->format('d M Y') }}">
+                                    </a>
+                                    <div class="p-2">
+                                        <p class="text-xs font-medium text-gray-700">{{ $photo->taken_on->format('d M Y') }}</p>
+                                        @if($photo->notes)
+                                            <p class="text-xs text-gray-400 mt-0.5 line-clamp-2">{{ $photo->notes }}</p>
+                                        @endif
+                                    </div>
+                                    {{-- Delete button --}}
+                                    <form action="{{ route('patients.treatment-photos.destroy', [$patient, $photo]) }}" method="POST"
+                                        class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
+                                        onsubmit="return confirm('Delete this photo?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="w-7 h-7 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-md transition">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
         </div>
 
     </div>

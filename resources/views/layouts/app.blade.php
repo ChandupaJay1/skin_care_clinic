@@ -8,44 +8,56 @@
 </head>
 <body class="bg-rose-50 min-h-screen">
 
-    {{-- Navigation --}}
-    <nav class="bg-white shadow-md border-b border-rose-100">
+    {{-- Top Bar --}}
+    <nav class="bg-white shadow-sm border-b border-rose-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                {{-- Logo --}}
+            <div class="flex items-center justify-between h-14">
+
+                {{-- Brand --}}
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-rose-500 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-8 h-8 bg-rose-500 rounded-full flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                         </svg>
                     </div>
                     <div>
-                        <a href="{{ url('/') }}" class="text-lg font-bold text-rose-700 leading-tight">Skin Care Clinic</a>
+                        <a href="{{ route('dashboard') }}" class="text-base font-bold text-rose-700 leading-tight">Skin Care Clinic</a>
                         <p class="text-xs text-rose-400 leading-tight">Clinic Management</p>
                     </div>
                 </div>
 
-                {{-- Nav Links --}}
-                <div class="hidden md:flex items-center gap-6">
-                    <a href="{{ url('/') }}"
-                       class="text-sm font-medium {{ request()->is('/') ? 'text-rose-600' : 'text-gray-600 hover:text-rose-600' }} transition">
-                        Dashboard
-                    </a>
-                    <a href="{{ route('patients.index') }}"
-                       class="text-sm font-medium {{ request()->is('patients*') ? 'text-rose-600' : 'text-gray-600 hover:text-rose-600' }} transition">
-                        Patients
-                    </a>
+                {{-- User info + logout --}}
+                @auth
+                <div class="flex items-center gap-3">
+                    <div class="hidden sm:flex items-center gap-2">
+                        @php
+                            $roleColors = ['admin'=>'bg-rose-100 text-rose-700','doctor'=>'bg-teal-100 text-teal-700','receptionist'=>'bg-blue-100 text-blue-700'];
+                            $roleColor  = $roleColors[auth()->user()->role] ?? 'bg-gray-100 text-gray-600';
+                        @endphp
+                        <div class="w-7 h-7 rounded-full bg-rose-500 flex items-center justify-center text-white text-xs font-bold">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
+                        <div class="leading-tight">
+                            <p class="text-xs font-semibold text-gray-700">{{ auth()->user()->name }}</p>
+                            <span class="text-xs px-1.5 py-0.5 rounded-full font-medium {{ $roleColor }}">
+                                {{ auth()->user()->role_label }}
+                            </span>
+                        </div>
+                    </div>
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit"
+                            class="flex items-center gap-1.5 text-xs text-gray-500 hover:text-rose-600 border border-gray-200 hover:border-rose-300 px-3 py-1.5 rounded-lg transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
+                            Sign Out
+                        </button>
+                    </form>
                 </div>
+                @endauth
 
-                {{-- Register Button --}}
-                <a href="{{ route('patients.create') }}"
-                   class="bg-rose-500 hover:bg-rose-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    New Patient
-                </a>
             </div>
         </div>
     </nav>

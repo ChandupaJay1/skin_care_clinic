@@ -35,6 +35,14 @@ class Patient extends Model
     ];
 
     /**
+     * Treatment progress photos
+     */
+    public function treatmentPhotos()
+    {
+        return $this->hasMany(PatientTreatmentPhoto::class)->orderBy('taken_on');
+    }
+
+    /**
      * Get patient's age
      */
     public function getAgeAttribute(): int
