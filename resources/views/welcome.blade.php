@@ -162,26 +162,41 @@
 
         </div>
 
-        {{-- Coming soon row --}}
+        {{-- Second row: Appointments + Invoices --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-5 opacity-60">
-                <div class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center mb-4">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+            {{-- Appointments --}}
+            <a href="{{ route('appointments.index') }}"
+                class="group bg-white rounded-2xl border border-gray-100 p-5 hover:border-blue-200 hover:shadow-md transition shadow-sm">
+                <div class="w-10 h-10 bg-blue-50 group-hover:bg-blue-500 rounded-xl flex items-center justify-center mb-4 transition">
+                    <svg class="w-5 h-5 text-blue-500 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                 </div>
-                <p class="text-sm font-semibold text-gray-500 mb-0.5">Appointments</p>
-                <span class="text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">Coming Soon</span>
-            </div>
-            <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-5 opacity-60">
-                <div class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center mb-4">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <p class="text-sm font-semibold text-gray-800 mb-0.5">Appointments</p>
+                @php $todayAppts = \App\Models\Appointment::whereDate('appointment_date', today())->count(); @endphp
+                <p class="text-xs text-gray-400 mb-3">{{ $todayAppts }} today</p>
+                <span class="text-xs text-blue-500 font-medium flex items-center gap-1">
+                    Open <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            {{-- Invoices --}}
+            <a href="{{ route('invoices.index') }}"
+                class="group bg-white rounded-2xl border border-gray-100 p-5 hover:border-orange-200 hover:shadow-md transition shadow-sm">
+                <div class="w-10 h-10 bg-orange-50 group-hover:bg-orange-500 rounded-xl flex items-center justify-center mb-4 transition">
+                    <svg class="w-5 h-5 text-orange-500 group-hover:text-white transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
                 </div>
-                <p class="text-sm font-semibold text-gray-500 mb-0.5">Reports</p>
-                <span class="text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">Coming Soon</span>
-            </div>
+                <p class="text-sm font-semibold text-gray-800 mb-0.5">Invoices</p>
+                @php $totalInvoices = \App\Models\Invoice::count(); @endphp
+                <p class="text-xs text-gray-400 mb-3">{{ $totalInvoices }} total</p>
+                <span class="text-xs text-orange-500 font-medium flex items-center gap-1">
+                    Open <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
         </div>
     </div>
 
@@ -190,6 +205,42 @@
         <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-widest">Quick Actions</h3>
 
         <div class="space-y-3">
+
+            @if(auth()->user()->hasRole(['admin', 'receptionist']))
+            <a href="{{ route('appointments.create') }}"
+                class="flex items-center gap-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 hover:shadow-lg hover:shadow-blue-200 transition group">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-white">New Appointment</p>
+                    <p class="text-xs text-blue-100">Book a patient slot</p>
+                </div>
+                <svg class="w-4 h-4 text-white/60 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+            @endif
+
+            @if(auth()->user()->hasRole(['admin', 'receptionist']))
+            <a href="{{ route('invoices.create') }}"
+                class="flex items-center gap-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-4 hover:shadow-lg hover:shadow-orange-200 transition group">
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-white">New Invoice</p>
+                    <p class="text-xs text-orange-100">Create a patient invoice</p>
+                </div>
+                <svg class="w-4 h-4 text-white/60 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+            @endif
 
             @if(auth()->user()->hasRole(['admin', 'receptionist']))
             <a href="{{ route('patients.create') }}"

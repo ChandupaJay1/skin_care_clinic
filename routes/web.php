@@ -9,6 +9,7 @@ use App\Http\Controllers\DoctorController;
 
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\ReportController;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 Route::get('/login',  [AuthController::class, 'showLogin'])->name('login');
@@ -20,6 +21,16 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboard
     Route::get('/', fn() => view('welcome'))->name('dashboard');
+
+    // ── Reports (admin only) ──────────────────────────────────────────────────
+    Route::prefix('reports')->name('reports.')->middleware('role:admin')->group(function () {
+        Route::get('/daily',             [ReportController::class, 'daily'])->name('daily');
+        Route::get('/daily/print',       [ReportController::class, 'printDaily'])->name('daily.print');
+        Route::get('/monthly',           [ReportController::class, 'monthly'])->name('monthly');
+        Route::get('/monthly/print',     [ReportController::class, 'printMonthly'])->name('monthly.print');
+        Route::get('/outstanding',       [ReportController::class, 'outstanding'])->name('outstanding');
+        Route::get('/outstanding/print', [ReportController::class, 'printOutstanding'])->name('outstanding.print');
+    });
 
     // ── Invoices ──────────────────────────────────────────────────────────────
     Route::prefix('invoices')->name('invoices.')->group(function () {

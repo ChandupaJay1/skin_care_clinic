@@ -96,15 +96,33 @@
         </a>
 
         <div class="pt-4 mt-2 border-t border-gray-100">
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest px-3 mb-2">Coming Soon</p>
-            <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-400 cursor-not-allowed">
+            @if(auth()->user()->isAdmin())
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest px-3 mb-2">Reports</p>
+            <a href="{{ route('reports.daily') }}"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition
+                       {{ request()->routeIs('reports.daily') ? 'bg-rose-50 text-rose-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800' }}">
                 <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707"/>
                 </svg>
-                Reports
-                <span class="ml-auto text-xs bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-md">Soon</span>
-            </div>
+                Daily Summary
+            </a>
+            <a href="{{ route('reports.monthly') }}"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition
+                       {{ request()->routeIs('reports.monthly') ? 'bg-rose-50 text-rose-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Monthly Revenue
+            </a>
+            <a href="{{ route('reports.outstanding') }}"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition
+                       {{ request()->routeIs('reports.outstanding') ? 'bg-rose-50 text-rose-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800' }}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Outstanding
+            </a>
+            @endif
         </div>
 
     </nav>
